@@ -168,7 +168,13 @@ export async function disconnectAllRepositories() {
         });
         revalidatePath("/dashboard/settings", "page");
         revalidatePath("/dashboard/repository", "page");
+
+        return {
+            success: true,
+            count: result.count
+        };
     }
+
 
     catch (error) {
         console.error("Error disconnecting all repositories:", error);
