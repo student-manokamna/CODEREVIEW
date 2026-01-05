@@ -101,8 +101,13 @@ export async function getConnectedRepositories() {
         return [];
     }
 }
+export interface ActionResponse {
+    success: boolean;
+    message: string;
+    count?: number;
+}
 
-export async function disconnectRepository(repoId: string) {
+export async function disconnectRepository(repoId: string): Promise<ActionResponse> {
     try {
         const session = await auth.api.getSession({
             headers: await headers(),
@@ -154,7 +159,7 @@ export async function disconnectRepository(repoId: string) {
     }
 }
 
-export async function disconnectAllRepositories() {
+export async function disconnectAllRepositories(): Promise<ActionResponse> {
     try {
         const session = await auth.api.getSession({
             headers: await headers(),
