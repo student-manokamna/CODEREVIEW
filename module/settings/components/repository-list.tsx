@@ -60,8 +60,9 @@ export function RepositoryList() {
                 toast.success(`Disconnected ${result.count} repositories`);
                 setDisconnectAllOpen(false);
             } else {
-                toast.error(result?.error || "Failed to disconnect repositories");
+                toast.error(result?.message || "Failed to disconnect repositories");
             }
+
         },
     });
 

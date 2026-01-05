@@ -134,7 +134,10 @@ export async function disconnectRepository(repoId: string) {
         revalidatePath("/dashboard/settings", "page");
         revalidatePath("/dashboard/repository", "page");
 
-        return { success: true }
+        return {
+            success: true,
+            message: "Repository disconnected successfully"
+        };
     }
     catch (error) {
         console.error("Error disconnecting repository:", error);
@@ -144,6 +147,7 @@ export async function disconnectRepository(repoId: string) {
         };
     }
 }
+
 export async function disconnectAllRepositories() {
     try {
         const session = await auth.api.getSession({
@@ -171,16 +175,16 @@ export async function disconnectAllRepositories() {
 
         return {
             success: true,
-            count: result.count
+            count: result.count,
+            message: "Repositories disconnected successfully"
         };
     }
-
-
     catch (error) {
         console.error("Error disconnecting all repositories:", error);
         return {
             success: false,
-            message: "Failed to disconnect all repositories"
+            message: "Failed to disconnect all repositories",
+            count: 0
         };
     }
 }
