@@ -1,179 +1,180 @@
 "use server"
-import {auth} from "@/lib/auth"; // path to your auth file
-import {headers} from "next/headers";
+import { auth } from "@/lib/auth"; // path to your auth file
+import { headers } from "next/headers";
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
 import { success } from "zod";
 import { deleteWebhook } from "@/module/github/lib/github";
 
-export async function getUserProfile(){
-    try{
+export async function getUserProfile() {
+    try {
         const session = await auth.api.getSession({
             headers: await headers(),
         });
-        if(!session?.user){
+        if (!session?.user) {
             throw new Error("User is not authenticated");
         }
         const user = await prisma.user.findUnique({
-            where:{
+            where: {
                 id: session.user.id
             },
-            select:{    
-                id:true,
-                name:true,
-                email:true,
-                image:true,
-                createdAt:true,
+            select: {
+                id: true,
+                name: true,
+                email: true,
+                image: true,
+                createdAt: true,
             }
         });
         return user;
 
-    }catch(error){
+    } catch (error) {
         console.error("Error fetching user profile:", error);
         return null;
     }
 }
 
-export async function updateUserProfile(name?:string, email?:string){
-    try{
+export async function updateUserProfile(name?: string, email?: string) {
+    try {
         const session = await auth.api.getSession({
             headers: await headers(),
         });
-        if(!session?.user){
+        if (!session?.user) {
             throw new Error("User is not authenticated");
         }
         const updatedUser = await prisma.user.update({
-            where:{
+            where: {
                 id: session.user.id
             },
-            data:{
+            data: {
                 name: name,
                 email: email
             },
-            select:{
-                id:true,
-                name:true,
-                email:true,
-               
+            select: {
+                id: true,
+                name: true,
+                email: true,
+
             }
         });
         // revalidate settings page to reflect updated profile
-        revalidatePath("/dashboard/settings","page");
+        revalidatePath("/dashboard/settings", "page");
         return {
-            success:true,
+            success: true,
             user: updatedUser
         };
 
-    }catch(error){
+    } catch (error) {
         console.error("Error updating user profile:", error);
         return null;
     }
 
 }
 
-export async function getConnectedRepositories(){
-    try{
+export async function getConnectedRepositories() {
+    try {
         const session = await auth.api.getSession({
             headers: await headers(),
         });
-        if(!session?.user){
+        if (!session?.user) {
             throw new Error("User is not authenticated");
         }
         const repositories = await prisma.repository.findMany({
-            where:{
+            where: {
                 userId: session.user.id
             },
-            select:{
-                id:true,
-               name:true,
-               fullName:true,
-               url:true,
-               createdAt:true,
+            select: {
+                id: true,
+                name: true,
+                fullName: true,
+                url: true,
+                createdAt: true,
             },
-            orderBy:{   
-                createdAt:"desc"
+            orderBy: {
+                createdAt: "desc"
             }
         });
         return repositories;
     }
-    catch(error){
+    catch (error) {
         console.error("Error fetching connected repositories:", error);
         return [];
     }
 }
 
-export async function disconnectRepository(repoId:number){
-    try{
+export async function disconnectRepository(repoId: string) {
+    try {
         const session = await auth.api.getSession({
             headers: await headers(),
         });
-        if(!session?.user){
+        if (!session?.user) {
             throw new Error("User is not authenticated");
         }
         const repository = await prisma.repository.findUnique({
-  where: {
-    id: repositoryId,
-    userId: session.user.id,
-  },
-});
-if(!repository){
-    return {
-        success:false,
-        message:"Repository not found or not authorized"
-    };
-}
-await deleteWebhook(repository.owner, repository.name);
+            where: {
+                id: repoId,
+                userId: session.user.id,
+            },
+        });
+        if (!repository) {
+            return {
+                success: false,
+                message: "Repository not found or not authorized"
+            };
+        }
+        await deleteWebhook(repository.owner, repository.name);
 
         await prisma.repository.delete({
-            where:{
-                id: repositoryId,
+            where: {
+                id: repoId,
                 userId: session.user.id
             }
         });
-        revalidatePath("/dashboard/settings","page");
-        revalidatePath("/dashboard/repository","page");
 
-  return{success:true}
+        revalidatePath("/dashboard/settings", "page");
+        revalidatePath("/dashboard/repository", "page");
+
+        return { success: true }
     }
-    catch(error){
+    catch (error) {
         console.error("Error disconnecting repository:", error);
         return {
-            success:false,
-            message:"Failed to disconnect repository"
+            success: false,
+            message: "Failed to disconnect repository"
         };
     }
 }
-export async function disconnectAllRepositories(){
-    try{
+export async function disconnectAllRepositories() {
+    try {
         const session = await auth.api.getSession({
             headers: await headers(),
         });
-        if(!session?.user){
+        if (!session?.user) {
             throw new Error("User is not authenticated");
         }
         const repositories = await prisma.repository.findMany({
-            where:{
+            where: {
                 userId: session.user.id
             }
         });
-        await Promise.all(repositories.map(async(repo)=>{   
+        await Promise.all(repositories.map(async (repo) => {
             await deleteWebhook(repo.owner, repo.name);
         }))
         //  delete all repositories from db
         const result = await prisma.repository.deleteMany({
-            where:{
+            where: {
                 userId: session.user.id
             }
         });
-        revalidatePath("/dashboard/settings","page");
-        revalidatePath("/dashboard/repository","page");
+        revalidatePath("/dashboard/settings", "page");
+        revalidatePath("/dashboard/repository", "page");
     }
 
-    catch(error){
+    catch (error) {
         console.error("Error disconnecting all repositories:", error);
         return {
-            success:false,
-            message:"Failed to disconnect all repositories"
+            success: false,
+            message: "Failed to disconnect all repositories"
         };
     }
 }
