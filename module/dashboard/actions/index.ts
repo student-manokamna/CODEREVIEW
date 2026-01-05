@@ -1,5 +1,5 @@
 "use server"
-import {getGithubToken, fetchGithubConstributions } from "@/module/github/lib/github"; 
+import { getGithubToken, fetchGithubConstributions } from "@/module/github/lib/github";
 import { auth } from "@/lib/auth";
 import { headers } from "next/headers";
 import { Octokit } from "octokit";
@@ -7,19 +7,19 @@ import prisma from "@/lib/db";
 
 
 export async function getDashboardData() {
-    try{
+    try {
         const session = await auth.api.getSession({
-            headers:await headers()
+            headers: await headers()
         })
-        if(!session?.user){
+        if (!session?.user) {
             throw new Error("User is not authenticated")
         }
         const token = await getGithubToken();
         const octokit = new Octokit({
-            auth:token
+            auth: token
         })
         // get user github username 
-        const {data:user}= await octokit.rest.users.getAuthenticated();
+        const { data: user } = await octokit.rest.users.getAuthenticated();
 
         //  todo: fetch total connected repos from db
         const totalRepos = 30;
@@ -27,32 +27,32 @@ export async function getDashboardData() {
         //  fetch github contributions like commits , prs , issues etc
         const calendar = await fetchGithubConstributions(user.login, token);
         const totalCommits = calendar?.totalContributions || 0;
-//  count pr from db or github 
-const {data:prs}= await octokit.rest.search.issuesAndPullRequests({
-    q:`author:${user.login} type:pr`,
-    per_page:1  
-})
-const totalPRs = prs.total_count;
-//  todo : count ai review from db
-const totalReviews = 44;
-  return {
-    totalCommits,
-    totalPRs,
-    totalReviews,
-    totalRepos
-  }
+        //  count pr from db or github 
+        const { data: prs } = await octokit.rest.search.issuesAndPullRequests({
+            q: `author:${user.login} type:pr`,
+            per_page: 1
+        })
+        const totalPRs = prs.total_count;
+        //  todo : count ai review from db
+        const totalReviews = 44;
+        return {
+            totalCommits,
+            totalPRs,
+            totalReviews,
+            totalRepos
+        }
     }
-    catch(error){
+    catch (error) {
         console.error("Error fetching dashboard data:", error);
         return {
-            totalCommits:0,
-            totalPRs:0,
-            totalReviews:0,
-            totalRepos:0
+            totalCommits: 0,
+            totalPRs: 0,
+            totalReviews: 0,
+            totalRepos: 0
         }
     }
 }
- 
+
 export async function getMonthlyActivity() {
     try {
         const session = await auth.api.getSession({
@@ -67,7 +67,7 @@ export async function getMonthlyActivity() {
 
         const { data: user } = await octokit.rest.users.getAuthenticated()
 
-       const calendar = await fetchGithubConstributions(user.login, token)
+        const calendar = await fetchGithubConstributions(user.login, token)
 
 
         if (!calendar) {
@@ -142,7 +142,7 @@ export async function getMonthlyActivity() {
                 monthlyData[monthKey].reviews += 1;
             }
         })
-const { data: prs } = await octokit.rest.search.issuesAndPullRequests({
+        const { data: prs } = await octokit.rest.search.issuesAndPullRequests({
             q: `author:${user.login} type:pr created:>${sixMonthsAgo.toISOString().split("T")[0]
                 }`,
             per_page: 100,
@@ -166,9 +166,9 @@ const { data: prs } = await octokit.rest.search.issuesAndPullRequests({
         return [];
     }
 }
-export async function getContributionStats(){
-    try{
-const session = await auth.api.getSession({
+export async function getContributionStats() {
+    try {
+        const session = await auth.api.getSession({
             headers: await headers(),
         })
 
@@ -179,22 +179,29 @@ const session = await auth.api.getSession({
         const octokit = new Octokit({ auth: token })
         const { data: user } = await octokit.rest.users.getAuthenticated()
 
-       const calendar = await fetchGithubConstributions(user.login, token)
-if (!calendar) {
-            return [];
+        const calendar = await fetchGithubConstributions(user.login, token)
+        if (!calendar) {
+            return {
+                contributions: [],
+                totalContributions: 0
+            };
         }
         const contributions = calendar.weeks.flatMap((week: any) => week.contributionDays.map((day: any) => ({
             date: day.date,
             count: day.contributionCount,
-            level:Math.min(4, Math.floor(day.contributionCount / 3)) // level from 0 to 4
-        }))); 
+            level: Math.min(4, Math.floor(day.contributionCount / 3)) // level from 0 to 4
+        })));
         return {
             contributions,
             totalContributions: calendar.totalContributions
         }
-    }catch(error){
+    } catch (error) {
         console.error("Error fetching contribution stats:", error);
-        return [];
+        return {
+            contributions: [],
+            totalContributions: 0
+        };
     }
 }
+
 
