@@ -33,9 +33,10 @@ export function RepositoryList() {
 
     // Single repository disconnect mutation
     const disconnectMutation = useMutation({
-        mutationFn: async (repositoryId: number) => {
+        mutationFn: async (repositoryId: string) => {
             return await disconnectRepository(repositoryId);
         },
+
         onSuccess: (result) => {
             if (result?.success) {
                 toast.success("Repository disconnected successfully");
