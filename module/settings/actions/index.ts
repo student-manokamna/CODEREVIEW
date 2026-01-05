@@ -104,8 +104,9 @@ export async function getConnectedRepositories() {
 export interface ActionResponse {
     success: boolean;
     message: string;
-    count?: number;
+    count: number;
 }
+
 
 export async function disconnectRepository(repoId: string): Promise<ActionResponse> {
     try {
