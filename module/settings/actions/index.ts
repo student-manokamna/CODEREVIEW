@@ -3,8 +3,14 @@ import { auth } from "@/lib/auth"; // path to your auth file
 import { headers } from "next/headers";
 import prisma from "@/lib/db";
 import { revalidatePath } from "next/cache";
-import { success } from "zod";
 import { deleteWebhook } from "@/module/github/lib/github";
+
+export interface ActionResponse {
+    success: boolean;
+    message: string;
+    count: number;
+}
+
 
 export async function getUserProfile() {
     try {
@@ -101,11 +107,7 @@ export async function getConnectedRepositories() {
         return [];
     }
 }
-export interface ActionResponse {
-    success: boolean;
-    message: string;
-    count: number;
-}
+
 
 
 export async function disconnectRepository(repoId: string): Promise<ActionResponse> {

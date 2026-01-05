@@ -4,7 +4,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { getConnectedRepositories, disconnectRepository, disconnectAllRepositories } from "@/module/settings/actions";
+import { getConnectedRepositories, disconnectRepository, disconnectAllRepositories, type ActionResponse } from "@/module/settings/actions";
+
 import { toast } from "sonner";
 import { ExternalLink, Trash2, AlertTriangle } from "lucide-react";
 import {
@@ -53,8 +54,9 @@ export function RepositoryList() {
         mutationFn: async () => {
             return await disconnectAllRepositories();
         },
-        onSuccess: (result) => {
+        onSuccess: (result: ActionResponse) => {
             if (result?.success) {
+
                 queryClient.invalidateQueries({ queryKey: ["connected-repositories"] });
                 queryClient.invalidateQueries({ queryKey: ["dashboard-stats"] });
                 toast.success(`Disconnected ${result.count} repositories`);
