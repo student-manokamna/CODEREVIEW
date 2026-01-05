@@ -119,8 +119,10 @@ export async function disconnectRepository(repoId: string) {
         if (!repository) {
             return {
                 success: false,
-                message: "Repository not found or not authorized"
+                message: "Repository not found or not authorized",
+                count: 0
             };
+
         }
         await deleteWebhook(repository.owner, repository.name);
 
@@ -136,15 +138,19 @@ export async function disconnectRepository(repoId: string) {
 
         return {
             success: true,
-            message: "Repository disconnected successfully"
+            message: "Repository disconnected successfully",
+            count: 1
         };
+
     }
     catch (error) {
         console.error("Error disconnecting repository:", error);
         return {
             success: false,
-            message: "Failed to disconnect repository"
+            message: "Failed to disconnect repository",
+            count: 0
         };
+
     }
 }
 
