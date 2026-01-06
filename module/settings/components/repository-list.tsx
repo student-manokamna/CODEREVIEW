@@ -38,7 +38,7 @@ export function RepositoryList() {
             return await disconnectRepository(repositoryId);
         },
 
-        onSuccess: (result) => {
+        onSuccess: (result: ActionResponse) => {
             if (result?.success) {
                 toast.success("Repository disconnected successfully");
                 queryClient.invalidateQueries({ queryKey: ["connected-repositories"] });
@@ -47,6 +47,7 @@ export function RepositoryList() {
                 toast.error(`Failed to disconnect repository: ${result.message}`);
             }
         },
+
     });
 
     // Disconnect all repositories mutation
